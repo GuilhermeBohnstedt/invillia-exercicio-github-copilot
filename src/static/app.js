@@ -10,37 +10,44 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch("/activities");
       const activities = await response.json();
 
-      // Clear loading message
+      // Clear loading message and select options
       activitiesList.innerHTML = "";
+      activitySelect.innerHTML = '<option value="" disabled selected>-- Select an activity --</option>';
 
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
-        const activityCard = document.createElement("div");
-        activityCard.className = "activity-card";
-
         const spotsLeft = details.max_participants - details.participants.length;
 
-        // Create participants list
-        const participantsList = details.participants.map(
-          (participant) => `<span class="participant-badge">${participant}</span>`
-        ).join("");
-
-        activityCard.innerHTML = `
-          <h4>${name}</h4>
-          <p>${details.description}</p>
-          <p><strong>Schedule:</strong> ${details.schedule}</p>
-          <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
-          <p><strong>Participants:</strong></p>
-          <div class="participant">
-            ${
-              details.participants.length > 0
-                ? participantsList
-                : "<span class='no-participants'>No participants yet</span>"
-            }
+        const activityCard = `
+          <div class="card">
+            <div class="card-content">
+              <span class="card-title">${name}</span>
+              <ul class="collection">
+                <li class="collection-item">
+                  <strong>Description:</strong> ${details.description}
+                </li>
+                <li class="collection-item">
+                  <strong>Schedule:</strong> ${details.schedule}
+                </li>
+                <li class="collection-item">
+                  <strong>Availability:</strong> ${spotsLeft} spots left
+                </li>
+              </ul>
+            </div>
+            <div class="card-action">
+              <p><strong>Participants:</strong></p>
+              <div class="participants-container">
+                ${
+                  details.participants.length > 0
+                    ? details.participants.map((participant) => `<div class="chip">${participant}</div>`).join("")
+                    : "<span class='no-participants'>No participants yet</span>"
+                }
+              </div>
+            </div>
           </div>
         `;
 
-        activitiesList.appendChild(activityCard);
+        activitiesList.innerHTML += activityCard;
 
         // Add option to select dropdown
         const option = document.createElement("option");
@@ -48,6 +55,9 @@ document.addEventListener("DOMContentLoaded", () => {
         option.textContent = name;
         activitySelect.appendChild(option);
       });
+
+      // Reinitialize Materialize select
+      M.FormSelect.init(activitySelect);
     } catch (error) {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
       console.error("Error fetching activities:", error);
